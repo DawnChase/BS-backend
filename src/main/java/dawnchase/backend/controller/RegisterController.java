@@ -3,14 +3,16 @@ package dawnchase.backend.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import dawnchase.backend.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import dawnchase.backend.model.User;
+import dawnchase.backend.service.EmailService;
+import dawnchase.backend.service.UserService;
 
 @RestController
 @RequestMapping("/api")
@@ -20,6 +22,9 @@ public class RegisterController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/register")
     public Map<String, String> register(@RequestBody Map<String, String> request) {
         System.out.println("Received data: " + request);
@@ -27,7 +32,6 @@ public class RegisterController {
         String email = request.get("email");
         String password = request.get("password");
         String verificationCode = request.get("verificationCode");
-        String sentCode = request.get("sentCode");
 
         Map<String, String> response = new HashMap<>();
 
@@ -36,7 +40,19 @@ public class RegisterController {
             return response;
         }
 
-        // 这里添加用户注册逻辑，例如将用户信息存储到数据库
+        // 检查用户是否已存在
+        if (userService.findUserByEmail(email) != null) {
+            response.put("message", "用户已存在");
+            return response;
+        }
+        
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+
+        userService.registerUser(user);
+
         response.put("message", "注册成功");
         return response;
     }
