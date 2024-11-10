@@ -19,12 +19,10 @@ public class EmailController {
     @PostMapping("/send-verification-code")
     public Map<String, String> sendVerificationCode(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        String verificationCode = String.valueOf(new Random().nextInt(900000) + 100000);
-
-        emailService.sendSimpleEmail(email, "BS比价网站验证码", "你的验证码是：" + verificationCode);
+        emailService.generateAndSendVerificationCode(email);
 
         Map<String, String> response = new HashMap<>();
-        response.put("verificationCode", verificationCode);
+        response.put("message", "验证码已发送");
         return response;
     }
 
