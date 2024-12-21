@@ -26,7 +26,11 @@ public class FavoriteServiceImpl implements FavoriteService {
         return favoriteMapper.FindFavorite(href, username);
     }
 
-    public List<Favorite> FindFavoriteByUsername(String username) {
+    public List<String> FindFavoriteByUsername(String username) {
         return favoriteMapper.FindFavoriteByUsername(username);
+    }
+
+    public List<Favorite> FindFavoriteByHref(String href) {
+        return favoriteMapper.FindFavoriteByHref(href);
     }
 }

@@ -12,5 +12,7 @@ public interface FavoriteService {
 
     public Favorite FindFavorite(String href, String username);
 
-    public List<Favorite> FindFavoriteByUsername(String username);
+    public List<String> FindFavoriteByUsername(String username);
+
+    public List<Favorite> FindFavoriteByHref(String href);
 }
