@@ -4,7 +4,7 @@ import dawnchase.backend.model.User;
 
 public interface UserService {
 
-    public User registerUser(User user);
+    public void registerUser(User user);
 
     public User findUserByEmail(String email);
 

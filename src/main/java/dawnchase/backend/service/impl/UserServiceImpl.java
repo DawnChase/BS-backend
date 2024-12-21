@@ -12,9 +12,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
-    public User registerUser(User user) {
+    public void registerUser(User user) {
         userMapper.insertUser(user);
-        return user;
     }
 
     public User findUserByEmail(String email) {

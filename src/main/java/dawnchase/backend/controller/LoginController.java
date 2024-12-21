@@ -20,6 +20,8 @@ public class LoginController {
     public Map<String, String> login(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
+        System.out.println("username: " + username);
+        System.out.println("password: " + password);
 
         Map<String, String> response = new HashMap<>();
         User user = userService.findUserByUsername(username);
