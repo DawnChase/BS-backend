@@ -2,11 +2,13 @@ package dawnchase.backend.model;
 
 public class Product {
     private Long id;
-    private String detail_href;
-    private String img;
+    private String category;
+    private String href;
+    private String imgSrc;
     private double price;
     private String title;
     private String timestamp;
+    private String store;
 
     // Getters and Setters
     public Long getId() {
@@ -17,21 +19,17 @@ public class Product {
         this.id = id;
     }
 
-    public String getDetail_href() {
-        return detail_href;
-    }
+    public String getCategory() { return category; }
 
-    public void setDetail_href(String detail_href) {
-        this.detail_href = detail_href;
-    }
+    public void setCategory(String category) { this.category = category; }
 
-    public String getImg() {
-        return img;
-    }
+    public String getHref() { return href; }
 
-    public void setImg(String img) {
-        this.img = img;
-    }
+    public void setHref(String href) { this.href = href; }
+
+    public String getImgSrc() { return imgSrc; }
+
+    public void setImgSrc(String imgSrc) { this.imgSrc = imgSrc; }
 
     public double getPrice() { return price; }
 
@@ -51,6 +49,14 @@ public class Product {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getStore() {
+        return store;
+    }
+
+    public void setStore(String store) {
+        this.store = store;
     }
 
 }
