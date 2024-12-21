@@ -4,7 +4,7 @@ public class Product {
     private Long id;
     private String detail_href;
     private String img;
-    private String price;
+    private double price;
     private String title;
     private String timestamp;
 
@@ -33,13 +33,9 @@ public class Product {
         this.img = img;
     }
 
-    public String getPrice() {
-        return price;
-    }
+    public double getPrice() { return price; }
 
-    public void setPrice(String price) {
-        this.price = price;
-    }
+    public void setPrice(double price) { this.price = price; }
 
     public String getTitle() {
         return title;

@@ -229,7 +229,9 @@ public class ProductController {
                     Product NewProduct = new Product();
                     NewProduct.setDetail_href(href);
                     NewProduct.setImg(imgSrc);
-                    NewProduct.setPrice(price);
+
+                    double Price = Double.parseDouble(price.substring(1));
+                    NewProduct.setPrice(Price);
                     NewProduct.setTitle(title);
 
                     LocalDateTime now = LocalDateTime.now();
