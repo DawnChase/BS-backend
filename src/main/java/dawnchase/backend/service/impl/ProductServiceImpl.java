@@ -16,4 +16,8 @@ public class ProductServiceImpl implements ProductService {
         ProductMapper.InsertProduct(product);
     }
 
+    public Product FindProduct(String href) {
+        return ProductMapper.FindProduct(href);
+    }
+
 }

@@ -10,4 +10,7 @@ public interface ProductMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void InsertProduct(Product product);
 
+    @Select("SELECT * FROM products WHERE href = #{href}")
+    Product FindProduct(@Param("href")String href);
+
 }

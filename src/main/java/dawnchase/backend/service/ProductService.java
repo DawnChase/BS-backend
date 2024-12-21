@@ -6,4 +6,5 @@ public interface ProductService {
 
     public void InsertProduct(Product product);
 
+    public Product FindProduct(String href);
 }

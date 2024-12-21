@@ -9,6 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import dawnchase.backend.model.Favorite;
+import dawnchase.backend.model.User;
+import dawnchase.backend.service.FavoriteService;
 import dawnchase.backend.service.UserService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -36,6 +39,12 @@ public class ProductController {
     @Autowired
     private ProductService ProductService;
 
+    @Autowired
+    private FavoriteService favoriteService;
+
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/products")
     public List<Map<String, String>> getProducts(@RequestBody Map<String, String> params) {
 
@@ -58,8 +67,6 @@ public class ProductController {
         String url_jd = "https://re.jd.com/search?keyword=" + query + "&enc=utf-8";
         String url_sn = "https://search.suning.com/" + query + "/";
 
-        System.out.println("url_jd: " + url_jd);
-        System.out.println("url_sn: " + url_sn);
         // 用于存储商品数据
         List<Map<String, String>> products = new ArrayList<>();
 
@@ -118,7 +125,7 @@ public class ProductController {
                     WebElement priceElement = priceWait.until(ExpectedConditions.presenceOfElementLocated(
                             By.xpath(".//div[@class='price-box']/span[@class='def-price']")));
                     price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-//                        System.out.println("price: " + price);
+//                    System.out.println("price: " + price);
                     product.put("price", price);
                 } catch (Exception e) {
                     product.put("price", "N/A");
@@ -148,7 +155,7 @@ public class ProductController {
                 // 将商品数据添加到列表中
                 products.add(product);
 
-                InsertToMySQL(category, href, imgSrc, price, title, store);
+                InsertToProducts("sn", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
@@ -224,24 +231,125 @@ public class ProductController {
                 // 将商品数据添加到列表中
                 products.add(product);
 
-                InsertToMySQL(category, href, imgSrc, price, title, store);
+                InsertToProducts("jd", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
             driver.quit();
 
-
         }
 
-//        for (Map<String, String> product : products) {
-//            System.out.println("商品数据: " + product);
-//        }
         System.out.println("商品爬取完成");
         return products;
 
     }
 
-    private void InsertToMySQL(String category, String href, String imgSrc, String price, String title, String store) {
+    @PostMapping("/addToFavorites")
+    public Map<String, String> addToFavorites(@RequestBody Map<String, String> params) {
+
+        String href = params.get("href");
+        String username = params.get("username");
+        String price = params.get("price");
+
+        Favorite favorite = favoriteService.FindFavorite(href, username);
+        if (favorite != null)
+        {
+            System.out.println("商品已经收藏");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "商品已经收藏");
+            return response;
+        }
+
+        User user = userService.findUserByUsername(username);
+        String email = user.getEmail();
+
+        InsertToFavorites(href, username, price, email);
+
+        System.out.println("添加收藏成功");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "添加收藏成功");
+        return response;
+    }
+
+    @PostMapping("/deleteFromFavorites")
+    public Map<String, String> deleteFromFavorites(@RequestBody Map<String, String> params) {
+
+        String href = params.get("href");
+        String username = params.get("username");
+
+        Favorite favorite = favoriteService.FindFavorite(href, username);
+        if (favorite != null)
+        {
+            System.out.println("商品尚未收藏");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "商品尚未收藏");
+            return response;
+        }
+
+        favoriteService.DeleteFavorite(href, username);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "删除收藏成功");
+        return response;
+    }
+
+    @PostMapping("/displayFavorites")
+    public List<Map<String, String>> displayFavorites(@RequestBody Map<String, String> params) {
+
+        String username = params.get("username");
+        System.out.println("username: " + username);
+
+        List<Favorite> favorites = favoriteService.FindFavoriteByUsername(username);
+        // 输出收藏夹商品数
+        System.out.println("收藏夹商品数: " + favorites.size());
+
+        List<Map<String, String>> products = new ArrayList<>();
+
+        for (Favorite favorite : favorites) {
+            Map<String, String> product = new HashMap<>();
+//            System.out.println("favorite href: " + favorite.getHref());
+            Product currentProduct = ProductService.FindProduct(favorite.getHref());
+
+            String category = currentProduct.getCategory();
+            System.out.println("category: " + category);
+            if (category.equals("sn")) product.put("category", "苏宁易购");
+            if (category.equals("jd")) product.put("category", "京东");
+            product.put("href", currentProduct.getHref());
+            product.put("price", String.valueOf(currentProduct.getPrice()));
+            product.put("imgSrc", currentProduct.getImgSrc());
+            product.put("title", currentProduct.getTitle());
+            product.put("store", currentProduct.getStore());
+
+            products.add(product);
+        }
+
+        return products;
+
+    }
+
+    private void InsertToFavorites(String href, String username, String price, String email) {
+
+        Favorite NewFavorite = new Favorite();
+
+        NewFavorite.setHref(href);
+        NewFavorite.setUsername(username);
+
+        double Price = Double.parseDouble(price);
+        NewFavorite.setPrice(Price);
+
+        NewFavorite.setEmail(email);
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedNow = now.format(formatter);
+        NewFavorite.setTimestamp(formattedNow);
+
+        favoriteService.InsertFavorite(NewFavorite);
+    }
+
+
+    private void InsertToProducts(String category, String href, String imgSrc, String price, String title, String store) {
 
         Product NewProduct = new Product();
 
