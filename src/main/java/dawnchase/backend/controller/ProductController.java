@@ -71,7 +71,7 @@ public class ProductController {
         System.out.println("category: " + category);
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
+//        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--enable-unsafe-webgl");
@@ -87,19 +87,18 @@ public class ProductController {
         String url_sn = "https://search.suning.com/" + query + "/";
         String url_tb = "https://uland.taobao.com/sem/tbsearch?localImgKey=&page=1&q=" + query + "&tab=all";
 
-        System.out.println("url_tb: " + url_tb);
         // 用于存储商品数据
         List<Map<String, String>> products = new ArrayList<>();
 
         if (category.contains("sn")) {
-            System.out.println("category: sn");
+            System.out.println("url: " + url_sn);
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_sn);
             // 显式等待，确保页面加载完成
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'item-bg')]")));
             System.out.println("页面加载完成");
-            // 滚动页面，加载更多商品
+            // 直接滚到底部
             try {
                 scrollPage(driver);
                 Thread.sleep(1000);
@@ -149,11 +148,11 @@ public class ProductController {
 
         if (category.contains("jd"))
         {
-            System.out.println("category: jd");
+            System.out.println("url: " + url_jd);
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_jd);
             // 显式等待，确保页面加载完成
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'li_cen')]")));
             System.out.println("页面加载完成");
             // 找到所有的商品列表项
@@ -195,19 +194,27 @@ public class ProductController {
         }
 
         if (category.contains("tb")) {
-            System.out.println("category: tb");
+            System.out.println("url: " + url_tb);
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_tb);
             // 显式等待，确保页面加载完成
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@class, 'Card--doubleCardWrapper')]")));
             System.out.println("页面加载完成");
-            try {
-                scrollPage(driver);
-                Thread.sleep(2000);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
+            // 逐步滚动页面，直到底部
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            long scrollHeight = (long) js.executeScript("return document.body.scrollHeight");
+            long currentHeight = 0;
+
+            while (currentHeight < scrollHeight) {
+                currentHeight += 500; // 每次向下滚动500像素
+                js.executeScript("window.scrollTo(0, arguments[0]);", currentHeight);
+                try {
+                    Thread.sleep(500); // 等待页面内容加载（可根据需要调整时间）
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                scrollHeight = (long) js.executeScript("return document.body.scrollHeight"); // 动态更新scrollHeight
             }
 
             // 找到所有的商品列表项
