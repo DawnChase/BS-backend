@@ -54,10 +54,16 @@ public class ProductController {
     private String chromedriverPath;
 
     @PostMapping("/products")
-    public List<Map<String, String>> getProducts(@RequestBody Map<String, String> params) {
+    public List<Map<String, String>> getProducts(@RequestBody Map<String, Object> params) {
 
-        String query = params.get("query");
-        String category = params.get("category");
+        String query = (String) params.get("query");
+        List<String> categories = (List<String>) params.get("platforms");
+        String category = "";
+        for (String c : categories) {
+            System.out.println("c: " + c);
+            category += c;
+        }
+
         System.out.println("query: " + query);
         System.out.println("category: " + category);
 
@@ -80,7 +86,7 @@ public class ProductController {
         // 用于存储商品数据
         List<Map<String, String>> products = new ArrayList<>();
 
-        if (category.equals("sn") | category.equals("all")) {
+        if (category.contains("sn")) {
             System.out.println("category: sn");
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_sn);
@@ -131,15 +137,15 @@ public class ProductController {
 
                 try {
                     // 提取价格 (price)
-                    WebDriverWait priceWait = new WebDriverWait(driver, Duration.ofSeconds(20));
-                    WebElement priceElement = priceWait.until(ExpectedConditions.presenceOfElementLocated(
-                            By.xpath(".//div[@class='price-box']/span[@class='def-price']")));
+                    WebElement priceElement = productElement.findElement(By.xpath(".//div[@class='price-box']/span[@class='def-price']"));
                     price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-//                    System.out.println("price: " + price);
+                    if (price.equals(""))
+                        price = "0";
                     product.put("price", price);
                 } catch (Exception e) {
                     product.put("price", "N/A");
                 }
+                System.out.println("price: " + price);
 
                 try {
                     // 提取商品标题 (title)
@@ -173,7 +179,7 @@ public class ProductController {
 
         }
 
-        if (category.equals("jd") | category.equals("all")) {
+        if (category.contains("jd")) {
             System.out.println("category: jd");
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_jd);
@@ -260,9 +266,11 @@ public class ProductController {
         String href = params.get("href");
         String username = params.get("username");
         String price = params.get("price");
+        System.out.println("href: " + href);
+        System.out.println("username: " + username);
 
         List<Favorite> favorite = favoriteService.FindFavorite(href, username);
-        if (favorite != null)
+        if (!favorite.isEmpty())
         {
             System.out.println("商品已经收藏");
             Map<String, String> response = new HashMap<>();
@@ -288,7 +296,6 @@ public class ProductController {
         String href = params.get("href");
         String username = params.get("username");
 
-        System.out.println("deleteFromFavorites");
         System.out.println("href: " + href);
         System.out.println("username: " + username);
 
@@ -304,6 +311,7 @@ public class ProductController {
         favoriteService.DeleteFavorite(href, username);
 
         Map<String, String> response = new HashMap<>();
+        System.out.println("删除收藏成功");
         response.put("message", "删除收藏成功");
         return response;
     }
@@ -403,8 +411,10 @@ public class ProductController {
         NewProduct.setHref(href);
         NewProduct.setImgSrc(imgSrc);
 
-        double Price = Double.parseDouble(price);
-        NewProduct.setPrice(Price);
+        if (price.equals("N/A"))
+            NewProduct.setPrice(0);
+        else
+            NewProduct.setPrice(Double.parseDouble(price));
 
         NewProduct.setTitle(title);
         NewProduct.setStore(store);
@@ -416,7 +426,10 @@ public class ProductController {
 
         ProductService.InsertProduct(NewProduct);
 
+        if (price.equals("N/A"))
+            return;
         // 收藏的商品是否有降价
+        double Price = Double.parseDouble(price);
         List<Favorite> favorites = favoriteService.FindFavoriteByHref(href);
         for (Favorite favorite : favorites) {
             if (favorite.getPrice() > Price) {
