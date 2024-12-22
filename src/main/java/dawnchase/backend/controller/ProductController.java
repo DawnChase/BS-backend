@@ -19,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -49,6 +50,11 @@ public class ProductController {
 
     @Value("${chrome.driver.path}")
     private String chromedriverPath;
+
+    private void scrollPage(WebDriver driver) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+    }
 
     @PostMapping("/products")
     public List<Map<String, String>> getProducts(@RequestBody Map<String, Object> params) {
@@ -136,8 +142,12 @@ public class ProductController {
                     // 提取价格 (price)
                     WebElement priceElement = productElement.findElement(By.xpath(".//div[@class='price-box']/span[@class='def-price']"));
                     price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-                    if (price.equals(""))
-                        price = "0";
+                    while (price.isEmpty()) {
+                        scrollPage(driver);
+                        Thread.sleep(200); // 等待页面加载
+                        priceElement = productElement.findElement(By.xpath(".//div[@class='price-box']/span[@class='def-price']"));
+                        price = (priceElement.getText()).replaceAll("[^0-9.]", "");
+                    }
                     product.put("price", price);
                 } catch (Exception e) {
                     product.put("price", "N/A");
@@ -265,7 +275,7 @@ public class ProductController {
         NewProduct.setHref(href);
         NewProduct.setImgSrc(imgSrc);
 
-        if (price.equals("N/A"))
+        if (price.equals("N/A") || price.equals(""))
             NewProduct.setPrice(0);
         else
             NewProduct.setPrice(Double.parseDouble(price));
@@ -280,7 +290,7 @@ public class ProductController {
 
         ProductService.InsertProduct(NewProduct);
 
-        if (price.equals("N/A"))
+        if (price.equals("N/A") || price.equals(""))
             return;
         // 收藏的商品是否有降价
         double Price = Double.parseDouble(price);
