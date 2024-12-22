@@ -22,7 +22,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteMapper.DeleteFavorite(href, username);
     }
 
-    public Favorite FindFavorite(String href, String username) {
+    public List<Favorite> FindFavorite(String href, String username) {
         return favoriteMapper.FindFavorite(href, username);
     }
 

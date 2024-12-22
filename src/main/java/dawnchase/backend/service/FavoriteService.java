@@ -10,7 +10,7 @@ public interface FavoriteService {
 
     public void DeleteFavorite(String href, String username);
 
-    public Favorite FindFavorite(String href, String username);
+    public List<Favorite> FindFavorite(String href, String username);
 
     public List<String> FindFavoriteByUsername(String username);
 

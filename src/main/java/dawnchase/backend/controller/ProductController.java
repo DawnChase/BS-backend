@@ -261,7 +261,7 @@ public class ProductController {
         String username = params.get("username");
         String price = params.get("price");
 
-        Favorite favorite = favoriteService.FindFavorite(href, username);
+        List<Favorite> favorite = favoriteService.FindFavorite(href, username);
         if (favorite != null)
         {
             System.out.println("商品已经收藏");
@@ -288,10 +288,11 @@ public class ProductController {
         String href = params.get("href");
         String username = params.get("username");
 
+        System.out.println("deleteFromFavorites");
         System.out.println("href: " + href);
         System.out.println("username: " + username);
 
-        Favorite favorite = favoriteService.FindFavorite(href, username);
+        List<Favorite> favorite = favoriteService.FindFavorite(href, username);
         if (favorite == null)
         {
             System.out.println("商品尚未收藏");

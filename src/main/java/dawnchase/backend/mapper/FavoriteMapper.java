@@ -14,8 +14,9 @@ public interface FavoriteMapper {
     @Select("DELETE FROM favorites WHERE href = #{href} AND username = #{username}")
     void DeleteFavorite(@Param("href") String href, @Param("username") String username);
 
+    // 用于查找是否存在该商品
     @Select("SELECT * FROM favorites WHERE href = #{href} AND username = #{username}")
-    Favorite FindFavorite(@Param("href")String href, @Param("username")String username);
+    List<Favorite> FindFavorite(@Param("href")String href, @Param("username")String username);
 
     // 用于收藏夹中显示
     // 取同名中timestamp最大的记录（最接近现在）
