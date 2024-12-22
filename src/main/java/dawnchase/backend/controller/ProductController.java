@@ -26,6 +26,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -49,6 +50,9 @@ public class ProductController {
     @Autowired
     private EmailService emailService;
 
+    @Value("${chrome.driver.path}")
+    private String chromedriverPath;
+
     @PostMapping("/products")
     public List<Map<String, String>> getProducts(@RequestBody Map<String, String> params) {
 
@@ -58,14 +62,16 @@ public class ProductController {
         System.out.println("category: " + category);
 
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--enable-unsafe-webgl");
         options.addArguments("--disable-software-rasterizer");
         options.addArguments("--log-level=3");
+        options.addArguments("--disable-dev-shm-usage");
         options.addArguments("excludeSwitches", "enable-logging");
 
-        String chromedriverPath = new File("chromedriver.exe").getAbsolutePath();
+        // 使用properties中的设置路径
         System.setProperty("webdriver.chrome.driver", chromedriverPath);
 
         String url_jd = "https://re.jd.com/search?keyword=" + query + "&enc=utf-8";
