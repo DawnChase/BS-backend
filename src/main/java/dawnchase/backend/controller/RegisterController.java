@@ -16,7 +16,7 @@ import dawnchase.backend.service.UserService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://10.162.194.150:5173/")
+@CrossOrigin(origins = "*")
 public class RegisterController {
 
     @Autowired
