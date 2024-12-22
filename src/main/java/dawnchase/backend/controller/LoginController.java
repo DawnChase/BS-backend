@@ -33,7 +33,7 @@ public class LoginController {
             response.put("message", "密码错误");
         else
             response.put("message", "登录成功");
-
+        response.put("email", user.getEmail());
         return response;
     }
 }
