@@ -6,6 +6,8 @@ import dawnchase.backend.service.FavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -32,5 +34,24 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     public List<Favorite> FindFavoriteByHref(String href) {
         return favoriteMapper.FindFavoriteByHref(href);
+    }
+
+    public void InsertToFavorites(String href, String username, String price, String email) {
+        Favorite NewFavorite = new Favorite();
+
+        NewFavorite.setHref(href);
+        NewFavorite.setUsername(username);
+
+        double Price = Double.parseDouble(price);
+        NewFavorite.setPrice(Price);
+
+        NewFavorite.setEmail(email);
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedNow = now.format(formatter);
+        NewFavorite.setTimestamp(formattedNow);
+
+        InsertFavorite(NewFavorite);
     }
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://10.162.194.150:5173/")
 public class LoginController {
 
     @Autowired
@@ -22,6 +22,12 @@ public class LoginController {
         String password = request.get("password");
         System.out.println("username: " + username);
         System.out.println("password: " + password);
+
+        if (username == "" || password == "") {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "用户名或密码为空");
+            return response;
+        }
 
         Map<String, String> response = new HashMap<>();
         User user = userService.findUserByUsername(username);
