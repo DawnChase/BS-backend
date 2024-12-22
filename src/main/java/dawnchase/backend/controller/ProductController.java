@@ -85,7 +85,9 @@ public class ProductController {
 
         String url_jd = "https://re.jd.com/search?keyword=" + query + "&enc=utf-8";
         String url_sn = "https://search.suning.com/" + query + "/";
+        String url_tb = "https://uland.taobao.com/sem/tbsearch?localImgKey=&page=1&q=" + query + "&tab=all";
 
+        System.out.println("url_tb: " + url_tb);
         // 用于存储商品数据
         List<Map<String, String>> products = new ArrayList<>();
 
@@ -97,6 +99,14 @@ public class ProductController {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'item-bg')]")));
             System.out.println("页面加载完成");
+            // 滚动页面，加载更多商品
+            try {
+                scrollPage(driver);
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             // 找到所有的商品列表项
             List<WebElement> productElements = driver.findElements(By.xpath("//div[contains(@class, 'item-bg')]"));
             System.out.println("商品数量: " + productElements.size());
@@ -106,78 +116,29 @@ public class ProductController {
             for (WebElement productElement : productElements) {
                 Map<String, String> product = new HashMap<>();
 
-                String href = "";
-                String imgSrc = "";
-                String price = "";
-                String title = "";
-                String store = "";
-
-                try {
-                    // 提取商品详情链接 (href)
-                    WebElement linkElement = productElement.findElement(By.xpath(".//div[@class='title-selling-point']/a"));
-                    href = linkElement.getAttribute("href");
-//                        System.out.println("href: " + href);
-                    product.put("href", href);
-                } catch (Exception e) {
-                    product.put("href", "N/A");
-                }
-
+                String href = GetElementAttribute(productElement, "href", ".//div[@class='title-selling-point']/a");
                 // 如果商品详情链接已经存在，则跳过
                 if (uniqueDetailLinks.contains(href))
                     continue;
 
                 uniqueDetailLinks.add(href);
 
-                try {
-                    // 提取图片链接 (img_k)
-                    WebElement imgElement = productElement.findElement(By.xpath(".//img[@tabindex='-1']"));
-                    imgSrc = imgElement.getAttribute("src");
-//                        System.out.println("imgSrc: " + imgSrc);
-                    product.put("imgSrc", imgSrc);
-                } catch (Exception e) {
-                    product.put("imgSrc", "N/A");
-                }
-
-                try {
-                    // 提取价格 (price)
-                    WebElement priceElement = productElement.findElement(By.xpath(".//div[@class='price-box']/span[@class='def-price']"));
-                    price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-                    while (price.isEmpty()) {
-                        scrollPage(driver);
-                        Thread.sleep(200); // 等待页面加载
-                        priceElement = productElement.findElement(By.xpath(".//div[@class='price-box']/span[@class='def-price']"));
-                        price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-                    }
-                    product.put("price", price);
-                } catch (Exception e) {
-                    product.put("price", "N/A");
-                }
-                System.out.println("price: " + price);
-
-                try {
-                    // 提取商品标题 (title)
-                    WebElement titleElement = productElement.findElement(By.xpath(".//img[@tabindex='-1']"));
-                    title = titleElement.getAttribute("alt");
-//                        System.out.println("title: " + title);
-                    product.put("title", title);
-                } catch (Exception e) {
-                    product.put("title", "N/A");
-                }
-
-                try {
-                    // 提取商家 (store)
-                    WebElement StoreElement = productElement.findElement(By.xpath(".//div[@class='store-stock']"));
-                    store = StoreElement.getText();
-//                        System.out.println("store: " + store);
-                    product.put("store", store);
-                } catch (Exception e) {
-                    product.put("store", "N/A");
-                }
+                String imgSrc = GetElementAttribute(productElement, "src", ".//img[@tabindex='-1']");
+                String price = GetElementText(productElement, ".//div[@class='price-box']/span[@class='def-price']");
+                price = price.replaceAll("[^0-9.]", "");
+                String title = GetElementAttribute(productElement, "alt", ".//img[@tabindex='-1']");
+                String store = GetElementText(productElement, ".//div[@class='store-stock']");
 
                 product.put("category", "苏宁易购");
+                product.put("href", href);
+                product.put("imgSrc", imgSrc);
+                product.put("price", price);
+                product.put("title", title);
+                product.put("store", store);
+
                 // 将商品数据添加到列表中
                 products.add(product);
-
+                // 插入数据库
                 InsertToProducts("sn", href, imgSrc, price, title, store);
             }
 
@@ -186,7 +147,8 @@ public class ProductController {
 
         }
 
-        if (category.contains("jd")) {
+        if (category.contains("jd"))
+        {
             System.out.println("category: jd");
             WebDriver driver = new ChromeDriver(options);
             driver.get(url_jd);
@@ -203,58 +165,87 @@ public class ProductController {
             for (WebElement productElement : productElements) {
                 Map<String, String> product = new HashMap<>();
 
-                String href = "";
-                String imgSrc = "";
-                String price = "";
-                String title = "";
-                String store = "";
-
-                try {
-                    // 提取商品详情链接 (href)
-                    WebElement linkElement = productElement.findElement(By.xpath(".//a"));
-                    href = linkElement.getAttribute("href");
-                    product.put("href", href);
-                } catch (Exception e) {
-                    product.put("href", "N/A");
-                }
+                String href = GetElementAttribute(productElement, "href", ".//a");
                 // 如果商品详情链接已经存在，则跳过
                 if (uniqueDetailLinks.contains(href))
                     continue;
 
                 uniqueDetailLinks.add(href);
 
-                try {
-                    // 提取图片链接 (img_k)
-                    WebElement imgElement = productElement.findElement(By.xpath(".//img[@class='img_k']"));
-                    imgSrc = imgElement.getAttribute("src");
-                    product.put("imgSrc", imgSrc);
-                } catch (Exception e) {
-                    product.put("imgSrc", "N/A");
-                }
-
-                try {
-                    // 提取价格 (price)
-                    WebElement priceElement = productElement.findElement(By.xpath(".//div[@class='commodity_info']/span[@class='price']"));
-                    price = (priceElement.getText()).replaceAll("[^0-9.]", "");
-                    product.put("price", price);
-                } catch (Exception e) {
-                    product.put("price", "N/A");
-                }
-
-                try {
-                    // 提取商品标题 (commodity_tit)
-                    WebElement titleElement = productElement.findElement(By.xpath(".//div[@class='commodity_tit']"));
-                    title = titleElement.getText();
-                    product.put("title", title);
-                } catch (Exception e) {
-                    product.put("title", "N/A");
-                }
+                String imgSrc = GetElementAttribute(productElement, "src", ".//img[@class='img_k']");
+                String price = GetElementText(productElement, ".//div[@class='commodity_info']/span[@class='price']");
+                price = price.replaceAll("[^0-9.]", "");
+                String title = GetElementText(productElement, ".//div[@class='commodity_tit']");
+                String store = "";
 
                 product.put("category", "京东");
+                product.put("href", href);
+                product.put("imgSrc", imgSrc);
+                product.put("price", price);
+                product.put("title", title);
+                product.put("store", store);
                 // 将商品数据添加到列表中
                 products.add(product);
 
                 InsertToProducts("jd", href, imgSrc, price, title, store);
+            }
+
+            // 关闭浏览器
+            driver.quit();
+        }
+
+        if (category.contains("tb")) {
+            System.out.println("category: tb");
+            WebDriver driver = new ChromeDriver(options);
+            driver.get(url_tb);
+            // 显式等待，确保页面加载完成
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@class, 'Card--doubleCardWrapper')]")));
+            System.out.println("页面加载完成");
+            try {
+                scrollPage(driver);
+                Thread.sleep(2000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // 找到所有的商品列表项
+            List<WebElement> productElements = driver.findElements(By.xpath("//a[contains(@class, 'Card--doubleCardWrapper')]"));
+            System.out.println("商品数量: " + productElements.size());
+            // 使用 HashSet 来存储唯一的商品详情链接
+            Set<String> uniqueDetailLinks = new HashSet<>();
+            // 遍历商品元素，提取所需信息
+            for (WebElement productElement : productElements) {
+                Map<String, String> product = new HashMap<>();
+
+                String href = GetElementAttribute(productElement, "href", ".");
+                // 如果商品详情链接已经存在，则跳过
+                if (uniqueDetailLinks.contains(href))
+                    continue;
+
+                uniqueDetailLinks.add(href);
+
+                String imgSrc = GetElementAttribute(productElement, "src", ".//img[contains(@class, 'MainPic--mainPic')]");
+//                System.out.println("imgSrc: " + imgSrc);
+
+                String priceInt = GetElementText(productElement, ".//div[contains(@class, 'Price--priceWrapper')]//span[contains(@class, 'Price--priceInt')]");
+                String priceFloat = GetElementText(productElement, ".//div[contains(@class, 'Price--priceWrapper')]//span[contains(@class, 'Price--priceFloat')]");
+                String price = (priceInt + priceFloat).replaceAll("[^0-9.]", "");
+
+                String title = GetElementText(productElement, ".//div[contains(@class, 'Title--title')]//span");
+                String store = GetElementText(productElement, ".//a[contains(@class, 'ShopInfo--shopName')]");
+
+                product.put("category", "淘宝");
+                product.put("href", href);
+                product.put("imgSrc", imgSrc);
+                product.put("price", price);
+                product.put("title", title);
+                product.put("store", store);
+                // 将商品数据添加到列表中
+                products.add(product);
+
+                InsertToProducts("tb", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
@@ -266,6 +257,32 @@ public class ProductController {
         return products;
 
     }
+
+    private String GetElementText(WebElement productElement, String path) {
+        String ans = "";
+        try {
+            WebElement Element = productElement.findElement(By.xpath(path));
+            ans = Element.getText();
+        }
+        catch (Exception e){
+            ans = "N/A";
+        }
+
+        return ans;
+    }
+
+    private String GetElementAttribute(WebElement productElement, String attribute, String path) {
+        String ans = "";
+        try {
+            WebElement Element = productElement.findElement(By.xpath(path));
+            ans = Element.getAttribute(attribute);
+        }
+        catch (Exception e){
+            ans = "N/A";
+        }
+        return ans;
+    }
+
 
     private void InsertToProducts(String category, String href, String imgSrc, String price, String title, String store) {
 
