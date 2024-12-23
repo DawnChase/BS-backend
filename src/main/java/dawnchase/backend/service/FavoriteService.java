@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface FavoriteService {
 
+    public List<Favorite> SelectAll();
+
     public void InsertFavorite(Favorite favorite);
 
     public void DeleteFavorite(String href, String username);

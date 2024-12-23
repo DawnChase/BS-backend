@@ -8,6 +8,9 @@ import java.util.List;
 @Mapper
 public interface FavoriteMapper {
 
+    @Select("SELECT * FROM favorites")
+    List<Favorite> SelectAll();
+
     @Insert("INSERT INTO favorites (href, username, price, email, timestamp) VALUES (#{href}, #{username}, #{price}, #{email}, #{timestamp})")
     void InsertFavorite(Favorite favorite);
 

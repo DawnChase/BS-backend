@@ -20,6 +20,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Autowired
     private EmailService emailService;
 
+    public List<Favorite> SelectAll() {
+        return favoriteMapper.SelectAll();
+    }
+
     public void InsertFavorite(Favorite favorite) {
         favoriteMapper.InsertFavorite(favorite);
     }
@@ -44,7 +48,10 @@ public class FavoriteServiceImpl implements FavoriteService {
         // 寻找最新的商品价格，并比较是否降价
         List<Favorite> favorites = FindFavoriteByHref(href);
         if (favorites.size() == 0)
+        {
+//            System.out.println("没有找到收藏夹中的商品");
             return;
+        }
         Favorite Newestfavorite = favorites.get(0);
         for (Favorite favorite : favorites)
             if (favorite.getTimestamp().compareTo(Newestfavorite.getTimestamp()) > 0)
@@ -59,6 +66,10 @@ public class FavoriteServiceImpl implements FavoriteService {
             String content = "您收藏的商品 " + title + " 降价了，当前价格为 " + Price + " 元";
             emailService.sendSimpleEmail(to, subject, content);
         }
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedNow = now.format(formatter);
+        Newestfavorite.setTimestamp(formattedNow);
         Newestfavorite.setPrice(Price);
         InsertFavorite(Newestfavorite);
     }
