@@ -35,11 +35,12 @@ public class LoginController {
         if (user == null)
             response.put("message", "用户不存在");
         else
-        if (!user.getPassword().equals(password))
-            response.put("message", "密码错误");
-        else
-            response.put("message", "登录成功");
-        response.put("email", user.getEmail());
+            if (!user.getPassword().equals(password))
+                response.put("message", "密码错误");
+            else {
+                response.put("message", "登录成功");
+                response.put("email", user.getEmail());
+            }
         return response;
     }
 }
