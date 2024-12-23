@@ -35,17 +35,17 @@ public class RegisterController {
 
         Map<String, String> response = new HashMap<>();
 
+        // 检查用户是否已存在
+        if (userService.findUserByEmail(email) != null) {
+            response.put("message", "邮箱已被使用");
+            return response;
+        }
+
         if (!emailService.verifyCode(email, verificationCode)) {
             response.put("message", "验证码错误");
             return response;
         }
 
-        // 检查用户是否已存在
-        if (userService.findUserByEmail(email) != null) {
-            response.put("message", "用户已存在");
-            return response;
-        }
-        
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);

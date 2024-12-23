@@ -6,6 +6,7 @@ import dawnchase.backend.model.User;
 import dawnchase.backend.service.FavoriteService;
 import dawnchase.backend.service.ProductService;
 import dawnchase.backend.service.UserService;
+import dawnchase.backend.service.impl.ProductServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,13 +23,17 @@ import java.util.Map;
 public class FavoriteController {
 
     @Autowired
-    private dawnchase.backend.service.ProductService ProductService;
+    private ProductService productService;
 
     @Autowired
     private FavoriteService favoriteService;
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ProductController productController;
+    @Autowired
+    private ProductServiceImpl productServiceImpl;
 
     @PostMapping("/addToFavorites")
     public Map<String, String> addToFavorites(@RequestBody Map<String, String> params) {
@@ -89,17 +94,10 @@ public class FavoriteController {
     @PostMapping("/displayFavorites")
     public List<Map<String, String>> displayFavorites(@RequestBody Map<String, String> params) {
 
-        // 用于测试
-//        String href = "https://product.suning.com/0000000000/12438719810.html";
-//        String imgSrc = "https://imgservice3.suning.cn/uimg1/b2c/atmosphere/_O7Z2Hm2lT-kXvK5co_XCw.png_400w_400h_4e";
-//        String price = "100";
-//        String title = "小米 REDMI Redmi K80 山峦青 16+512 手机骁龙8Gen3新品新款上市红米Xiaomi小米澎湃OS";
-//        String store = "苏宁自营";
-//        InsertToProducts("sn", href, imgSrc, price, title, store);
-
-
         String username = params.get("username");
         System.out.println("username: " + username);
+        String email = params.get("email");
+        System.out.println("email: " + email);
 
         List<String> favoriteHrefs = favoriteService.FindFavoriteByUsername(username);
         // 输出收藏夹商品数
@@ -110,10 +108,9 @@ public class FavoriteController {
         for (String favoriteHref : favoriteHrefs) {
             Map<String, String> product = new HashMap<>();
 //            System.out.println("favorite href: " + favoriteHref);
-            Product currentProduct = ProductService.FindProduct(favoriteHref);
-
+            Product currentProduct = productService.FindProduct(favoriteHref);
             String category = currentProduct.getCategory();
-//            System.out.println("category: " + category);
+            if (category.equals("tb")) product.put("category", "淘宝");
             if (category.equals("sn")) product.put("category", "苏宁易购");
             if (category.equals("jd")) product.put("category", "京东");
             product.put("href", currentProduct.getHref());
@@ -148,6 +145,24 @@ public class FavoriteController {
         }
 
         return priceHistory;
+
+    }
+
+    @PostMapping("/updatePrice")
+    public Map<String, String> updatePrice(@RequestBody Map<String, String> params) {
+
+        String href = params.get("href");
+        String username = params.get("username");
+        String price = params.get("price");
+        String email = params.get("email");
+
+        Product product = productService.FindProduct(href);
+        productService.InsertToProducts(product.getCategory(), href, product.getImgSrc(), price, product.getTitle(), product.getStore());
+        favoriteService.InsertToFavorites(href, username, price, email);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "价格更新成功");
+        return response;
 
     }
 

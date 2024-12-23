@@ -18,5 +18,7 @@ public interface FavoriteService {
 
     public List<Favorite> FindFavoriteByHref(String href);
 
+    public void CheckPrice(String href, String title, double price);
+
     public void InsertToFavorites(String href, String username, String price, String email) ;
 }

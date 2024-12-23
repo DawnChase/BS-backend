@@ -2,6 +2,7 @@ package dawnchase.backend.service.impl;
 
 import dawnchase.backend.mapper.FavoriteMapper;
 import dawnchase.backend.model.Favorite;
+import dawnchase.backend.service.EmailService;
 import dawnchase.backend.service.FavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Autowired
     private FavoriteMapper favoriteMapper;
+
+    @Autowired
+    private EmailService emailService;
 
     public void InsertFavorite(Favorite favorite) {
         favoriteMapper.InsertFavorite(favorite);
@@ -34,6 +38,29 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     public List<Favorite> FindFavoriteByHref(String href) {
         return favoriteMapper.FindFavoriteByHref(href);
+    }
+
+    public void CheckPrice(String href, String title, double Price) {
+        // 寻找最新的商品价格，并比较是否降价
+        List<Favorite> favorites = FindFavoriteByHref(href);
+        if (favorites.size() == 0)
+            return;
+        Favorite Newestfavorite = favorites.get(0);
+        for (Favorite favorite : favorites)
+            if (favorite.getTimestamp().compareTo(Newestfavorite.getTimestamp()) > 0)
+                Newestfavorite = favorite;
+
+        if (Price < Newestfavorite.getPrice()) {
+            System.out.println("href: " + href);
+            System.out.println("商品降价");
+            // 发送邮件
+            String to = Newestfavorite.getEmail();
+            String subject = "商品降价通知";
+            String content = "您收藏的商品 " + title + " 降价了，当前价格为 " + Price + " 元";
+            emailService.sendSimpleEmail(to, subject, content);
+        }
+        Newestfavorite.setPrice(Price);
+        InsertFavorite(Newestfavorite);
     }
 
     public void InsertToFavorites(String href, String username, String price, String email) {

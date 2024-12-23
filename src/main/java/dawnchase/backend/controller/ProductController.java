@@ -138,7 +138,7 @@ public class ProductController {
                 // 将商品数据添加到列表中
                 products.add(product);
                 // 插入数据库
-                InsertToProducts("sn", href, imgSrc, price, title, store);
+                ProductService.InsertToProducts("sn", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
@@ -186,7 +186,7 @@ public class ProductController {
                 // 将商品数据添加到列表中
                 products.add(product);
 
-                InsertToProducts("jd", href, imgSrc, price, title, store);
+                ProductService.InsertToProducts("jd", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
@@ -252,7 +252,7 @@ public class ProductController {
                 // 将商品数据添加到列表中
                 products.add(product);
 
-                InsertToProducts("tb", href, imgSrc, price, title, store);
+                ProductService.InsertToProducts("tb", href, imgSrc, price, title, store);
             }
 
             // 关闭浏览器
@@ -288,50 +288,6 @@ public class ProductController {
             ans = "N/A";
         }
         return ans;
-    }
-
-
-    private void InsertToProducts(String category, String href, String imgSrc, String price, String title, String store) {
-
-        Product NewProduct = new Product();
-
-        NewProduct.setCategory(category);
-        NewProduct.setHref(href);
-        NewProduct.setImgSrc(imgSrc);
-
-        if (price.equals("N/A") || price.equals(""))
-            NewProduct.setPrice(0);
-        else
-            NewProduct.setPrice(Double.parseDouble(price));
-
-        NewProduct.setTitle(title);
-        NewProduct.setStore(store);
-
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String formattedNow = now.format(formatter);
-        NewProduct.setTimestamp(formattedNow);
-
-        ProductService.InsertProduct(NewProduct);
-
-        if (price.equals("N/A") || price.equals(""))
-            return;
-        // 收藏的商品是否有降价
-        double Price = Double.parseDouble(price);
-        List<Favorite> favorites = favoriteService.FindFavoriteByHref(href);
-        for (Favorite favorite : favorites) {
-            if (favorite.getPrice() > Price) {
-                System.out.println("href: " + href);
-                System.out.println("商品降价");
-                // 发送邮件
-                String to = favorite.getEmail();
-                String subject = "商品降价通知";
-                String content = "您收藏的商品 " + title + " 降价了，当前价格为 " + Price + " 元";
-                emailService.sendSimpleEmail(to, subject, content);
-            }
-            if (favorite.getPrice() != Price)
-                favoriteService.InsertToFavorites(href, favorite.getUsername(), price, favorite.getEmail());
-        }
     }
 
 }
