@@ -25,7 +25,7 @@ public class ScheduleController {
 //        System.out.println("固定定时任务执行:--->"+nowDateTime+"，此任务为每五秒执行一次");
 //    }
 
-    @Scheduled(cron = "0 44 14 * * ?") // 每天晚上10:30执行
+    @Scheduled(cron = "0 44 14 * * ?") // 每天晚上20:44（UTC+8）执行
     public void scheduledCrawl() {
         System.out.println("定时爬取商品");
         List<Favorite> favorites = favoriteService.SelectAll();
