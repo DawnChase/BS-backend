@@ -151,6 +151,7 @@ public class FavoriteController {
     @PostMapping("/updatePrice")
     public Map<String, String> updatePrice(@RequestBody Map<String, String> params) {
 
+
         String href = params.get("href");
         String username = params.get("username");
         String price = params.get("price");
@@ -158,7 +159,6 @@ public class FavoriteController {
 
         Product product = productService.FindProduct(href);
         productService.InsertToProducts(product.getCategory(), href, product.getImgSrc(), price, product.getTitle(), product.getStore());
-        favoriteService.InsertToFavorites(href, username, price, email);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "价格更新成功");
