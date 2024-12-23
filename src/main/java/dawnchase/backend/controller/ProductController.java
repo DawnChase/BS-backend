@@ -71,7 +71,7 @@ public class ProductController {
         System.out.println("category: " + category);
 
         ChromeOptions options = new ChromeOptions();
-//        options.addArguments("--headless");
+        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--enable-unsafe-webgl");
